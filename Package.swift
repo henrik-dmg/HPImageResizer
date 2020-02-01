@@ -13,12 +13,20 @@ let package = Package(
         .library(
             name: "ImageResizer",
             targets: ["ImageResizer"]),
+        .executable(
+            name: "ImageResizerCLI",
+            targets: ["ImageResizerCLI"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/henrik-dmg/CLIFoundation", from: "0.2.2")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
+        .target(name: "ImageResizer"),
         .target(
-            name: "ImageResizer"),
+            name: "ImageResizerCLI",
+            dependencies: ["ImageResizer", "CLIFoundation"]),
         .testTarget(
             name: "ImageResizerTests",
             dependencies: ["ImageResizer"]),
