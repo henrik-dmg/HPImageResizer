@@ -8,14 +8,14 @@ public struct ImageResizer {
     public func resizeImage(at url: URL, with size: CGSize) throws -> CGMetadataImage {
         let image = try loadImage(at: url)
 
-        return try render(image: image, with: size)
+        return try scaleImage(image, to: size)
     }
 
     public func scaleImage(at url: URL, to scale: CGFloat) throws -> CGMetadataImage {
         let image = try loadImage(at: url)
         let scaledSize = image.cgImage.size.scaled(by: scale)
 
-        return try render(image: image, with: scaledSize)
+        return try scaleImage(image, to: scaledSize)
     }
 
     public func write(metaImage: CGMetadataImage, to destinationURL: URL, format: CFString = kUTTypePNG) throws {
@@ -32,7 +32,7 @@ public struct ImageResizer {
         }
     }
 
-    private func loadImage(at url: URL) throws -> CGMetadataImage {
+    public func loadImage(at url: URL) throws -> CGMetadataImage {
         guard
             let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
             let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
@@ -44,7 +44,7 @@ public struct ImageResizer {
         return CGMetadataImage(cgImage: image, metadata: metadata)
     }
 
-    private func render(image: CGMetadataImage, with size: CGSize) throws -> CGMetadataImage {
+    public func scaleImage(_ image: CGMetadataImage, to size: CGSize) throws -> CGMetadataImage {
         let context = CGContext(
             data: nil,
             width: Int(size.width),
