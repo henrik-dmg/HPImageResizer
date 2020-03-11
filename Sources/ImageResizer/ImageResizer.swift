@@ -49,7 +49,7 @@ public struct ImageResizer {
             throw NSError(description: "Could not load PDF at path \(url.absoluteString)")
         }
 
-        guard pdfDocument.numberOfPages == 1, let page = pdfDocument.page(at: 0) else {
+        guard pdfDocument.numberOfPages == 1, let page = pdfDocument.page(at: 1) else {
             throw NSError(description: "PDF file was multi-page document")
         }
 
