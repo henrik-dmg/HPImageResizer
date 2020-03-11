@@ -37,11 +37,23 @@ public struct ImageResizer {
             let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
             let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
         else {
-            throw NSError(description: "Failed to load image file")
+            throw NSError(description: "Failed to load image at path \(url.absoluteString)")
         }
 
         let metadata = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil)
         return CGMetadataImage(cgImage: image, metadata: metadata)
+    }
+
+    public func loadPDFImage(at url: URL) throws -> CGPDFPage {
+        guard let pdfDocument = CGPDFDocument(url as CFURL) else {
+            throw NSError(description: "Could not load PDF at path \(url.absoluteString)")
+        }
+
+        guard pdfDocument.numberOfPages == 1, let page = pdfDocument.page(at: 0) else {
+            throw NSError(description: "PDF file was multi-page document")
+        }
+
+        return page
     }
 
     public func scaleImage(_ image: CGMetadataImage, to size: CGSize) throws -> CGMetadataImage {
@@ -63,6 +75,27 @@ public struct ImageResizer {
         let modifiedMeta = injectNewResolution(size, into: image.metadata)
 
         return CGMetadataImage(cgImage: scaledImage, metadata: modifiedMeta)
+    }
+
+    public func renderPDFPage(_ page: CGPDFPage) throws -> CGImage {
+        let rect = page.getBoxRect(.mediaBox)
+
+        let context = CGContext(
+            data: nil,
+            width: Int(rect.width),
+            height: Int(rect.height),
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+
+        context?.drawPDFPage(page)
+
+        guard let image = context?.makeImage() else {
+            throw NSError(description: "Failed to render PDF page")
+        }
+
+        return image
     }
 
     private func injectNewResolution(_ size: CGSize, into metadata: CFDictionary?) -> CFDictionary? {
