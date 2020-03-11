@@ -2,10 +2,10 @@ import Foundation
 
 public extension NSError {
 
-    convenience init(description: String) {
+    convenience init(code: Int = 1, description: String) {
         self.init(
             domain: "com.henrikpanhans.ImageResizer",
-            code: 1,
+            code: code,
             userInfo: [NSLocalizedDescriptionKey: description])
     }
 

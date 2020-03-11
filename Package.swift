@@ -14,11 +14,11 @@ let package = Package(
             name: "ImageResizer",
             targets: ["ImageResizer"]),
         .executable(
-            name: "ImageResizerCLI",
+            name: "hpresizer",
             targets: ["ImageResizerCLI"])
     ],
     dependencies: [
-        .package(url: "https://github.com/henrik-dmg/CLIFoundation", from: "0.2.2")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.0.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,7 +26,7 @@ let package = Package(
         .target(name: "ImageResizer"),
         .target(
             name: "ImageResizerCLI",
-            dependencies: ["ImageResizer", "CLIFoundation"]),
+            dependencies: ["ImageResizer", "ArgumentParser"]),
         .testTarget(
             name: "ImageResizerTests",
             dependencies: ["ImageResizer"]),

@@ -1,6 +1,7 @@
 import Foundation
 
 public enum ImageFormat {
+
     case image
     case jpeg
     case jpeg2000
@@ -48,4 +49,5 @@ public enum ImageFormat {
             return kUTTypeLivePhoto
         }
     }
+    
 }

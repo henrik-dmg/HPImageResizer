@@ -9,6 +9,7 @@ import CoreGraphics
 //}
 
 public struct ImageSpecification {
+
     var fileName: String
     var filePath: URL?
     var size: CGSize
@@ -20,4 +21,5 @@ public struct ImageSpecification {
         self.size = size
         self.imageFormat = imageFormat
     }
+
 }
