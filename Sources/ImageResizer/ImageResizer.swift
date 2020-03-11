@@ -56,6 +56,11 @@ public struct ImageResizer {
         return page
     }
 
+    public func scaleImage(_ image: CGImage, to size: CGSize) throws -> CGImage {
+        let metaImage = CGMetadataImage(cgImage: image, metadata: nil)
+        return try scaleImage(metaImage, to: size).cgImage
+    }
+
     public func scaleImage(_ image: CGMetadataImage, to size: CGSize) throws -> CGMetadataImage {
         let context = CGContext(
             data: nil,
