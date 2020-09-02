@@ -5,9 +5,9 @@ CURRENT="$(pwd)"
 
 cd $SCRIPTPATH
 swift build -c release
-cp -f .build/release/hpresizer /usr/local/bin/hpresizer
+cp -f .build/release/image-resizer /usr/local/bin/image-resizer
 rm -r .build/release
 
-echo "Installed hpresizer into /usr/local/bin/"
+echo "Installed image-resizer into /usr/local/bin/"
 
 cd $CURRENT

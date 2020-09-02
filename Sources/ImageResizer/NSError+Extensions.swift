@@ -6,7 +6,8 @@ public extension NSError {
         self.init(
             domain: "com.henrikpanhans.ImageResizer",
             code: code,
-            userInfo: [NSLocalizedDescriptionKey: description])
+            userInfo: [NSLocalizedDescriptionKey: description]
+        )
     }
 
 }

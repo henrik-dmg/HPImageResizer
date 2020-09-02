@@ -1,124 +1,78 @@
 import Foundation
-import CoreGraphics
+import ImageIO
 
-public struct ImageResizer {
+public class ImageResizer {
 
-    public init() {}
+    // MARK: - Properties
 
-    public func resizeImage(at url: URL, with size: CGSize) throws -> CGMetadataImage {
-        let image = try loadImage(at: url)
+    let imageSource: CGImageSource
+    let originalImageSize: CGSize
 
-        return try scaleImage(image, to: size)
-    }
+    // MARK: - Init
 
-    public func scaleImage(at url: URL, to scale: CGFloat) throws -> CGMetadataImage {
-        let image = try loadImage(at: url)
-        let scaledSize = image.cgImage.size.scaled(by: scale)
-
-        return try scaleImage(image, to: scaledSize)
-    }
-
-    public func write(metaImage: CGMetadataImage, to destinationURL: URL, format: CFString = kUTTypePNG) throws {
-        try write(image: metaImage.cgImage, with: metaImage.metadata, to: destinationURL, format: format)
-    }
-
-    public func write(image: CGImage, with metadata: CFDictionary?, to destinationURL: URL, format: CFString = kUTTypePNG) throws {
-        guard let destination = CGImageDestinationCreateWithURL(destinationURL as CFURL, format, 1, metadata) else {
-            throw NSError(description: "Failed to create destination image")
+    public init(sourceURL: URL) throws {
+        guard let imageSource = CGImageSourceCreateWithURL(sourceURL as NSURL, nil) else {
+            throw NSError(description: "Could not load image at path: \(sourceURL.path)")
         }
-        CGImageDestinationAddImage(destination, image, nil)
-        if !CGImageDestinationFinalize(destination) {
-            throw NSError(description: "Failed to write image to disk")
+        guard let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [AnyHashable: Any] else {
+            throw NSError(description: "Could not read image properties at path: \(sourceURL.path)")
         }
-    }
-
-    public func loadImage(at url: URL) throws -> CGMetadataImage {
         guard
-            let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-            let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
+            let pixelWidth = imageProperties[kCGImagePropertyPixelWidth as String] as! CFNumber?,
+            let pixelHeight = imageProperties[kCGImagePropertyPixelHeight as String] as! CFNumber?
         else {
-            throw NSError(description: "Failed to load image at path \(url.absoluteString)")
+            throw NSError(description: "Could not read dimensions of image")
         }
 
-        let metadata = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil)
-        return CGMetadataImage(cgImage: image, metadata: metadata)
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+        CFNumberGetValue(pixelWidth, .cgFloatType, &width)
+        CFNumberGetValue(pixelHeight, .cgFloatType, &height)
+
+        self.imageSource = imageSource
+        self.originalImageSize = CGSize(width: width, height: height)
     }
 
-    public func loadPDFImage(at url: URL) throws -> CGPDFPage {
-        guard let pdfDocument = CGPDFDocument(url as CFURL) else {
-            throw NSError(description: "Could not load PDF at path \(url.absoluteString)")
-        }
+    // MARK: - API
 
-        guard pdfDocument.numberOfPages == 1, let page = pdfDocument.page(at: 1) else {
-            throw NSError(description: "PDF file was multi-page document")
-        }
-
-        return page
+    public func resizeImage(to size: CGSize, destinationURL: URL) throws {
+        let image = try resizeImage(to: size)
+        try write(image: image, to: destinationURL)
     }
 
-    public func scaleImage(_ image: CGImage, to size: CGSize) throws -> CGImage {
-        let metaImage = CGMetadataImage(cgImage: image, metadata: nil)
-        return try scaleImage(metaImage, to: size).cgImage
+    public func scaleImage(to scale: CGFloat, destinationURL: URL) throws {
+        let targetSize = originalImageSize.scaled(by: scale)
+        try resizeImage(to: targetSize, destinationURL: destinationURL)
     }
 
-    public func scaleImage(_ image: CGMetadataImage, to size: CGSize) throws -> CGMetadataImage {
-        let context = CGContext(
-            data: nil,
-            width: Int(size.width),
-            height: Int(size.width),
-            bitsPerComponent: image.cgImage.bitsPerComponent,
-            bytesPerRow: image.cgImage.bytesPerRow,
-            space: image.cgImage.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: image.cgImage.bitmapInfo.rawValue)
-        context?.interpolationQuality = .high
-        context?.draw(image.cgImage, in: CGRect(origin: .zero, size: size))
+    // Adapted from NSHipster https://nshipster.com/image-resizing/#technique-3-creating-a-thumbnail-with-image-io
+    public func resizeImage(to size: CGSize) throws -> CGImage {
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageIfAbsent: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: max(size.width, size.height)
+        ]
 
-        guard let scaledImage = context?.makeImage() else {
-            throw NSError(description: "Failed to render scaled image")
+        guard let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary) else {
+            throw NSError(description: "Could not scale loaded image")
         }
-
-        let modifiedMeta = injectNewResolution(size, into: image.metadata)
-
-        return CGMetadataImage(cgImage: scaledImage, metadata: modifiedMeta)
-    }
-
-    public func renderPDFPage(_ page: CGPDFPage) throws -> CGImage {
-        let rect = page.getBoxRect(.mediaBox)
-
-        let context = CGContext(
-            data: nil,
-            width: Int(rect.width),
-            height: Int(rect.height),
-            bitsPerComponent: 8,
-            bytesPerRow: 0,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-
-        context?.drawPDFPage(page)
-
-        guard let image = context?.makeImage() else {
-            throw NSError(description: "Failed to render PDF page")
-        }
-
         return image
     }
 
-    private func injectNewResolution(_ size: CGSize, into metadata: CFDictionary?) -> CFDictionary? {
-        guard var meta = metadata as? [String: AnyObject] else {
-            return metadata
-        }
-
-        meta["PixelHeight"] = Int(size.height) as AnyObject
-        meta["PixelWidth"] = Int(size.width) as AnyObject
-        return meta as CFDictionary
+    public func scaleImage(to scale: CGFloat) throws -> CGImage {
+        let targetSize = originalImageSize.scaled(by: scale)
+        return try resizeImage(to: targetSize)
     }
 
-}
-
-extension CGImage {
-
-    var size: CGSize {
-        CGSize(width: width, height: height)
+    public func write(image: CGImage, to url: URL) throws {
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypePNG, 1, nil) else {
+            throw NSError(description: "Could not create image destination")
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        if !CGImageDestinationFinalize(destination) {
+            throw NSError(description: "Failed to write scaled image to path: \(url.path)")
+        }
     }
 
 }
