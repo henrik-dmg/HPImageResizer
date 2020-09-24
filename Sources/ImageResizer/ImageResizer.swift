@@ -35,14 +35,14 @@ public class ImageResizer {
 
     // MARK: - API
 
-    public func resizeImage(to size: CGSize, destinationURL: URL) throws {
+    public func resizeImage(to size: CGSize, destinationURL: URL, format: ImageFormat) throws {
         let image = try resizeImage(to: size)
-        try write(image: image, to: destinationURL)
+        try write(image: image, to: destinationURL, format: format)
     }
 
-    public func scaleImage(to scale: CGFloat, destinationURL: URL) throws {
+    public func scaleImage(to scale: CGFloat, destinationURL: URL, format: ImageFormat) throws {
         let targetSize = originalImageSize.scaled(by: scale)
-        try resizeImage(to: targetSize, destinationURL: destinationURL)
+        try resizeImage(to: targetSize, destinationURL: destinationURL, format: format)
     }
 
     // Adapted from NSHipster https://nshipster.com/image-resizing/#technique-3-creating-a-thumbnail-with-image-io
@@ -65,8 +65,8 @@ public class ImageResizer {
         return try resizeImage(to: targetSize)
     }
 
-    public func write(image: CGImage, to url: URL) throws {
-        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypePNG, 1, nil) else {
+    public func write(image: CGImage, to url: URL, format: ImageFormat) throws {
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, format.cfIdentifier, 1, nil) else {
             throw NSError(description: "Could not create image destination")
         }
         CGImageDestinationAddImage(destination, image, nil)

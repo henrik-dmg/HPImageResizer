@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ImageFormat {
+public enum ImageFormat: String, Equatable, Hashable, CaseIterable {
 
     case image
     case jpeg
@@ -48,6 +48,13 @@ public enum ImageFormat {
         case .livePhoto:
             return kUTTypeLivePhoto
         }
+    }
+
+    public init?(lowercased: String) {
+        guard let format = ImageFormat.allCases.first(where: { $0.rawValue.lowercased() == lowercased }) else {
+            return nil
+        }
+        self = format
     }
     
 }

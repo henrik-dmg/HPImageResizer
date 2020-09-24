@@ -10,6 +10,9 @@ struct HPResize: ParsableCommand {
     @Option(name: .shortAndLong, help: "The scale to which the image should be scaled in percent")
     var scale: Int
 
+    @Option(name: .shortAndLong, help: "The format of the output image")
+    var format: ImageFormat
+
     @Flag(help: "Prints additional information during rendering")
     var verbose = false
 
@@ -26,7 +29,7 @@ struct HPResize: ParsableCommand {
 
         let resizer = try ImageResizer(sourceURL: image)
         let outputURL = makeOutputPath(for: image, scale: scale)
-        try resizer.scaleImage(to: CGFloat(scale) / 100, destinationURL: outputURL)
+        try resizer.scaleImage(to: CGFloat(scale) / 100, destinationURL: outputURL, format: format)
     }
 
     func makeOutputPath(for url: Foundation.URL, scale: Int) -> Foundation.URL {
@@ -45,6 +48,14 @@ extension URL: ExpressibleByArgument {
 
     public init?(argument: String) {
         self.init(fileURLWithPath: argument)
+    }
+
+}
+
+extension ImageFormat: ExpressibleByArgument {
+
+    public init?(argument: String) {
+        self.init(lowercased: argument.lowercased())
     }
 
 }
