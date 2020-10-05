@@ -28,12 +28,12 @@ struct HPResize: ParsableCommand {
         }
 
         let resizer = try ImageResizer(sourceURL: image)
-        let outputURL = makeOutputPath(for: image, scale: scale)
+        let outputURL = makeOutputPath(for: image, scale: scale, format: format)
         try resizer.scaleImage(to: CGFloat(scale) / 100, destinationURL: outputURL, format: format)
     }
 
-    func makeOutputPath(for url: Foundation.URL, scale: Int) -> Foundation.URL {
-        let pathExtension = url.pathExtension.isEmpty ? nil : url.pathExtension
+    func makeOutputPath(for url: Foundation.URL, scale: Int, format: ImageFormat) -> Foundation.URL {
+        let pathExtension = url.pathExtension.isEmpty ? nil : format.fileEndings.first
         let droppedURL = url.deletingPathExtension()
 
         let fileName = droppedURL.lastPathComponent + "@\(scale)"
@@ -55,7 +55,10 @@ extension URL: ExpressibleByArgument {
 extension ImageFormat: ExpressibleByArgument {
 
     public init?(argument: String) {
-        self.init(lowercased: argument.lowercased())
+        guard let resolvedType = ImageFormat.allCases.first(where: { $0.fileEndings.contains(argument.lowercased()) }) else {
+            return nil
+        }
+        self = resolvedType
     }
 
 }
