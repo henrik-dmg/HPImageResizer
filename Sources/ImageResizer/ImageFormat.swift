@@ -15,9 +15,39 @@ public enum ImageFormat: String, Equatable, Hashable, CaseIterable {
     case ico
     case raw
     case svg
-    case livePhoto
 
-    var cfIdentifier: CFString {
+    public var fileEndings: [String] {
+        switch self {
+        case .image:
+            return []
+        case .jpeg:
+            return ["jpg", "jpeg"]
+        case .jpeg2000:
+            return ["jp2", "j2k", "jpf", "jpx", "jpm", "mj2"]
+        case .tiff:
+            return ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi"]
+        case .pict:
+            return ["pict", "pct", "pic"]
+        case .gif:
+            return ["gif"]
+        case .png:
+            return ["png"]
+        case .quickTimeImage:
+            return ["qt"]
+        case .appleICNS:
+            return ["icns"]
+        case .bmp:
+            return ["bmp", "dib"]
+        case .ico:
+            return ["ico"]
+        case .raw:
+            return ["dng"]
+        case .svg:
+            return ["svg"]
+        }
+    }
+
+    public var cfIdentifier: CFString {
         switch self {
         case .image:
             return kUTTypeImage
@@ -45,8 +75,6 @@ public enum ImageFormat: String, Equatable, Hashable, CaseIterable {
             return kUTTypeRawImage
         case .svg:
             return kUTTypeScalableVectorGraphics
-        case .livePhoto:
-            return kUTTypeLivePhoto
         }
     }
 
