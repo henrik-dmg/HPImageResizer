@@ -7,6 +7,9 @@ struct HPResize: ParsableCommand {
     @Argument(help: "The image that should be resized")
     var image: URL
 
+    @Option(name: .shortAndLong, help: "The custom output path of the resized image")
+    var output: URL?
+
     @Option(name: .shortAndLong, help: "The scale to which the image should be scaled in percent")
     var scale: Int
 
@@ -28,12 +31,12 @@ struct HPResize: ParsableCommand {
         }
 
         let resizer = try ImageResizer(sourceURL: image)
-        let outputURL = makeOutputPath(for: image, scale: scale, format: format)
+        let outputURL = makeOutputPath(for: output ?? image, scale: scale, format: format)
         try resizer.scaleImage(to: CGFloat(scale) / 100, destinationURL: outputURL, format: format)
     }
 
     func makeOutputPath(for url: Foundation.URL, scale: Int, format: ImageFormat) -> Foundation.URL {
-        let pathExtension = url.pathExtension.isEmpty ? nil : format.fileEndings.first
+        let pathExtension = format.fileEndings.first ?? "wumbojumbo"
         let droppedURL = url.deletingPathExtension()
 
         let fileName = droppedURL.lastPathComponent + "@\(scale)"
