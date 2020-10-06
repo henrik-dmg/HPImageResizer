@@ -1,4 +1,8 @@
 import Foundation
+import ImageIO
+#if !os(macOS)
+import MobileCoreServices
+#endif
 
 public enum ImageFormat: String, Equatable, Hashable, CaseIterable {
 
