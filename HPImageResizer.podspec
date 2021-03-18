@@ -12,17 +12,17 @@ Pod::Spec.new do |s|
   s.social_media_url   = "https://twitter.com/henrik_dmg"
 
   s.ios.deployment_target = "11.0"
-  s.tvos.deployment_target = "11.0"
+  s.osx.deployment_target = "10.14"
 
   s.source       = { :git => "https://github.com/henrik-dmg/HPImageResizer.git", :tag => s.version }
 
   s.source_files  = "Sources/HPImageResizer/**/*.swift"
 
   s.framework = "Foundation"
-  s.ios.framework = "UIKit"
-  s.tvos.framework = "UIKit"
+  s.ios.framework = "ImageIO"
+  s.osx.framework = "ImageIO"
 
-  s.swift_version = "5.4"
+  s.swift_version = "5.1"
   s.requires_arc = true
 
 end
