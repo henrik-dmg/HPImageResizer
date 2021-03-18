@@ -1,6 +1,6 @@
 import XCTest
 import CoreGraphics
-@testable import ImageResizer
+@testable import HPImageResizer
 
 final class ImageResizerTests: XCTestCase {
 
@@ -9,11 +9,19 @@ final class ImageResizerTests: XCTestCase {
         return URL(fileURLWithPath: path).appendingPathComponent("testingImage").appendingPathExtension("png")
     }
 
+	override func setUpWithError() throws {
+		try super.setUpWithError()
+		try writeTestingImage()
+	}
+
+	override func tearDownWithError() throws {
+		try super.tearDownWithError()
+		try cleanUp()
+	}
+
     func testScaleImageToFiftyPercent() throws {
-        try writeTestingImage()
         let resizer = try ImageResizer(sourceURL: ImageResizerTests.imageSourceURL)
         let resizedImage = try resizer.scaleImage(to: 0.5)
-        try cleanUp()
 
         XCTAssertEqual(resizedImage.width, 50)
         XCTAssertEqual(resizedImage.height, 25)

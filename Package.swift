@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "ImageResizer",
+    name: "HPImageResizer",
     platforms: [
         .macOS(.v10_14),
         .iOS(.v11)
@@ -12,17 +12,17 @@ let package = Package(
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "ImageResizer",
-            targets: ["ImageResizer"]
+            name: "HPImageResizer",
+            targets: ["HPImageResizer"]
         )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
-        .target(name: "ImageResizer"),
+        .target(name: "HPImageResizer"),
         .testTarget(
-            name: "ImageResizerTests",
-            dependencies: ["ImageResizer"]
+            name: "HPImageResizerTests",
+            dependencies: ["HPImageResizer"]
         ),
     ]
 )

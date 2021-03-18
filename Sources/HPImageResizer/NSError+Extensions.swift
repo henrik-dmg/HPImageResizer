@@ -1,6 +1,6 @@
 import Foundation
 
-public extension NSError {
+extension NSError {
 
     convenience init(code: Int = 1, description: String) {
         self.init(
